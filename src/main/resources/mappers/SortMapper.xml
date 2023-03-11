@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--创建的映射文件文件名与对应的接口的全类名对应-->
+<mapper namespace="com.cz.huawei_demo.dao.SortMapper">
+<!--    <cache type="org.mybatis.caches.redis.RedisCache" />-->
+    <cache type="com.cz.huawei_demo.redis.config.RedisCacheConfig"/>
+    <!--
+    //查询出商品分类列表以及分类下所有商品
+    List<Sort> getSortList();
+    -->
+    <select id="getSortList" resultMap="getSortListMap">
+        select sort.*,commodity.*,commodity.id cid,sort_img.*,sort_img.sort_name as sort_img_ame
+        from sort
+        inner join commodity
+        on sort.sort = commodity.sort_name
+        left join sort_img
+        on sort.id = sort_img.sort_id
+    </select>
+    <resultMap id="getSortListMap" type="Sort">
+        <id property="id" column="id"/>
+        <result property="sort" column="sort"/>
+        <collection property="commodityList" ofType="commodity">
+            <id property="id" column="cid"/>
+            <result property="commodityName" column="commodity_name"/>
+            <result property="describe" column="describe"/>
+            <result property="imgUrl" column="imgUrl"/>
+            <result property="price" column="price"/>
+            <result property="nowPrice" column="now_price"/>
+        </collection>
+        <collection property="imgList" ofType="sortImg">
+            <id property="sortImgId" column="sort_img_id"/>
+            <result property="sortImgUrl" column="sort_img_url"/>
+            <result property="sortName" column="sort_img_ame"/>
+        </collection>
+    </resultMap>
+</mapper>

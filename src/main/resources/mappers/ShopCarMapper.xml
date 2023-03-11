@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--创建的映射文件文件名与对应的接口的全类名对应-->
+<mapper namespace="com.cz.huawei_demo.dao.ShopCarMapper">
+<!--    <cache type="org.mybatis.caches.redis.RedisCache" />-->
+    <cache type="com.cz.huawei_demo.redis.config.RedisCacheConfig"/>
+    <!--
+    购物车商品提交订单的时候将购物车表中的信息转存到订单关联表中
+    -->
+    <insert id="addOrderCommodityFromShopCar">
+        insert into orders_commodity
+        (belong_order_id,commodity_id,commodity_number,commodity_options,commodity_price,commodity_img)
+        select
+        #{orderId},sc_commodity_id,sc_commodity_number,sc_commodity_options,sc_commodity_price,sc_commodity_img
+        from shop_car
+        where shop_car_id = #{shopCarId}
+    </insert>
+    <!--
+    /*根据用户id获取自己的购物车商品*/
+    @Select("select * from shop_car where user_id = #{userId}")
+    List<ShopCarCommodity> getAllSCCommodity(@Param("userId")String UserId);
+    -->
+    <select id="getAllSCCommodity" parameterType="string" resultMap="getAllSCCommodityMap">
+<!--    <select id="getAllSCCommodity" resultType="shopCarCommodity">-->
+        select * from shop_car
+        inner join commodity
+        on shop_car.sc_commodity_id = commodity.id
+        where shop_car.user_id = #{userId}
+    </select>
+    <resultMap id="getAllSCCommodityMap" type="shopCarCommodity">
+        <id property="shopCarId" column="shop_car_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="scCommodityId" column="sc_commodity_id"/>
+        <result property="scCommodityPrice" column="sc_commodity_price"/>
+        <result property="scCommodityNumber" column="sc_commodity_number"/>
+        <result property="scCommodityOptions" column="sc_commodity_options"/>
+        <result property="scCommodityImg" column="sc_commodity_img"/>
+        <association property="commodity" select="getCommodityById" column="sc_commodity_id" javaType="commodity">
+        </association>
+    </resultMap>
+
+    <select id="getCommodityById" resultType="commodity">
+        select * from commodity where id = #{sc_commodity_id}
+    </select>
+
+    <!--
+    /*根据id删除指定商品*/
+    int deleteShopCar(@Param("shopCarId")String shopCarId);
+    -->
+    <delete id="deleteShopCar">
+        delete from shop_car where shop_car_id = #{shopCarId}
+    </delete>
+
+
+    <!--
+    /*根据购物车商品id查询价格*/
+    int getPriceByShopCarId(@Param("shopCarId")String shopCarId);
+    -->
+    <select id="getPriceByShopCarId" resultType="string">
+        select sc_commodity_price from shop_car where shop_car_id = #{shopCarId}
+    </select>
+    
+    
+    <!--
+    /*用户修改商品数量*/
+    /*修改商品数量的时候会伴随着商品价格的变化*/
+    int changeCommodityNumber(@Param("commodityNumber")String commodityNumber,@Param("shopCarId")String shopCarId);
+    -->
+    <update id="changeCommodityNumber">
+        update shop_car set sc_commodity_number = #{commodityNumber} where shop_car_id = #{shopCarId}
+    </update>
+
+
+    <!--
+    String getColorUrl(@Param("commodityId")String commodityId,@Param("color")String color);
+    -->
+    <select id="getColorUrl" resultType="string">
+        select commodity_color_img.url  from commodity_color_img where commodity_id = #{commodityId} and color = #{color} and logo = 'isLogo'
+    </select>
+
+    <!--
+    //添加购物车
+    int addShopCar(ShopCarCommodity shopCarCommodity);
+    -->
+    <insert id="addShopCar">
+        insert into shop_car value (null,#{userId},#{scCommodityId},#{scCommodityPrice},#{scCommodityNumber},#{scCommodityOptions},#{scCommodityImg})
+    </insert>
+
+    <!--根据购物车商品id关联商品表只查出商品库存以及购车中商品的数量-->
+    <!--这两个数据都要随时保持是最新的数据，不使用缓存-->
+    <select id="getShopCarCommodityById" resultMap="getShopCarCommodityByIdMap" useCache="false">
+        select repertory,sc_commodity_number
+        from shop_car
+        inner join commodity
+        on shop_car.sc_commodity_id = commodity.id
+        where shop_car_id = #{shopCarId}
+    </select>
+    <resultMap id="getShopCarCommodityByIdMap" type="shopCarCommodityVo">
+        <result column="repertory" property="commodityRepertory"/>
+        <result column="sc_commodity_number" property="shopCarCommodityNumber"/>
+
+    </resultMap>
+    
+</mapper>

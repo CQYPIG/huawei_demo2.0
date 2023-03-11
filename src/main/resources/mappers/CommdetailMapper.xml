@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--创建的映射文件文件名与对应的接口的全类名对应-->
+<mapper namespace="com.cz.huawei_demo.dao.CommDetailImgMapper">
+    <cache type="org.mybatis.caches.redis.RedisCache" />
+    <cache type="com.cz.huawei_demo.redis.config.RedisCacheConfig"/>
+    <!--
+    @Select("select commodity_color_img.url from commodity_color_img where commodity_id = #{commodityId} and color = #{color}")
+    List<String> getImages(@Param("commodityId")String commodityId,@Param("color")String color);
+    -->
+    <select id="getImages" resultType="string">
+        select commodity_color_img.url from commodity_color_img where commodity_id = #{commodityId} and color = #{color}
+    </select>
+
+
+    <!--List<CommodityDetailImg> getImgByCommId(@Param("commodityId")String id);-->
+    <select id="getImgByCommId" resultMap="getImgByCommIdMap">
+        select * from commodity_detail_img where commodity_id = #{commodityId}
+    </select>
+    <resultMap id="getImgByCommIdMap" type="commodityDetailImg">
+        <id property="commodityId" column="commodity_id" />
+        <collection property="images" ofType="string">
+            <result column="img_url"/>
+        </collection>
+    </resultMap>
+</mapper>

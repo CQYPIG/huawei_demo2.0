@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--创建的映射文件文件名与对应的接口的全类名对应-->
+<mapper namespace="com.cz.huawei_demo.dao.OrderCommodityMapper">
+<!--    <cache type="org.mybatis.caches.redis.RedisCache" />-->
+<!--    <cache type="com.cz.huawei_demo.redis.config.RedisCacheConfig"/>-->
+    <!--
+    /*添加订单的时候将详情表中对应的能标识出商品的图片赋值给这个订单*/
+    int setLogoImg(@Param("commodityId")String commodityId,@Param("color") String color);
+    -->
+    <update id="setLogoImg">
+        update orders_commodity
+            join commodity_color_img
+            on commodity_color_img.logo = 'isLogo'
+        set orders_commodity.commodity_img = commodity_color_img.url
+        where commodity_color_img.commodity_id = #{commodityId}
+        and commodity_color_img.color = #{color}
+        and orders_commodity.order_commodity_id = #{OrderCommodityId}
+    </update>
+
+    <!--
+    添加订单关联商品并返回id
+    int addOrderCommodity(OrderCommodity orderCommodity);
+    -->
+    <insert id="addOrderCommodity"
+            parameterType="orderCommodity"
+            useGeneratedKeys="true"
+            keyColumn="order_commodity_id"
+            keyProperty="orderCommodityId"
+    >
+        insert into orders_commodity values (null,#{belongOrderId},#{commodityId},#{commodityNumber},#{commodityOptions},#{commodityPrice},null)
+    </insert>
+</mapper>

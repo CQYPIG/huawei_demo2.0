@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--创建的映射文件文件名与对应的接口的全类名对应-->
+<mapper namespace="com.cz.huawei_demo.dao.CommodityMapper">
+<!--    <cache type="com.cz.huawei_demo.redis.config.RedisCacheConfig"/>-->
+    <!--根据商品id查询商品-->
+    <!--因为直接修改数据库不能触发缓存的更新，这里不适用缓存-->
+    <select id="getCommodityById" resultType="commodity" useCache="false">
+        select * from commodity where id = #{id}
+    </select>
+    
+    <!--获取秒杀的商品-->
+    <select id="getSeckillCommodity" resultType="commodity">
+        select * from commodity where is_seckill = true limit 3
+    </select>
+
+
+    <!--商品库存减少-->
+    <update id="repertoryDecr">
+        update commodity set repertory = repertory - #{number} where id = #{commodityId}
+    </update>
+
+    <!--//关键词模糊搜索商品
+    List<Commodity> likeCommodity(@Param("keyWord")String keyWord);-->
+    <select id="likeCommodity" resultType="commodity">
+        select * from commodity
+        where sort_name like CONCAT('%',#{keyWord},'%')
+        or commodity_name like CONCAT('%',#{keyWord},'%')
+       or `describe` like CONCAT('%',#{keyWord},'%')
+       or price like CONCAT('%',#{keyWord},'%')
+       or options like CONCAT('%',#{keyWord},'%')
+    </select>
+
+</mapper>
